@@ -34,7 +34,7 @@ class PublicIngredientsApiTests(TestCase):
 
     def test_auth_required(self):
         """Test auth is required for retrieving ingredients."""
-        res =  self.client.get(INGREDIENTS_URL)
+        res = self.client.get(INGREDIENTS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -83,3 +83,14 @@ class PrivateIngredientsApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         ingredient.refresh_from_db()
         self.assertEqual(ingredient.name, payload['name'])
+
+    def test_delete_ingredient(self):
+        """Test deleting an ingredient."""
+        ingredient = Ingredient.objects.create(user=self.user, name='Lettuce')
+
+        url = detail_url(ingredient.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        ingredients = Ingredient.objects.filter(user=self.user)
+        self.assertFalse(ingredients.exists())
